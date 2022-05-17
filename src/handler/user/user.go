@@ -44,7 +44,7 @@ func CreateUsers(response *fiber.Ctx) error {
 		return response.Status(500).JSON(fiber.Map{
 			"status": "error",
 			"msg":    "Error body not complete, Could not create user",
-			"data":   nil,
+			"data":   err,
 		})
 	}
 
@@ -102,11 +102,20 @@ func DeleteUser(response *fiber.Ctx) error {
 	id := response.Params("userId") //! This is only a test from param the correct is in the body
 
 	// Find the user by id aka: SELECT * FROM users WHERE id = ?
-	db.Find(&user, "id = ?", id)
-	// delete a user aka: DELETE FROM user WHERE id = ?
-	err := db.Delete(&user, "id = ?", id).Error
+	err := db.Find(&user, "id = ?", id)
 
 	if err != nil {
+		return response.Status(500).JSON(fiber.Map{
+			"status": "error",
+			"msg":    "Data not found",
+			"data":   nil,
+		})
+	}
+
+	// delete a user aka: DELETE FROM user WHERE id = ?
+	errorDelete := db.Delete(&user, "id = ?", id).Error
+
+	if errorDelete != nil {
 		return response.Status(500).JSON(fiber.Map{
 			"status": "error",
 			"msg":    "Error on delete user",
@@ -117,6 +126,43 @@ func DeleteUser(response *fiber.Ctx) error {
 	return response.Status(200).JSON(fiber.Map{
 		"status": "success",
 		"msg":    "Success deleted",
+		"data":   user,
+	})
+}
+
+// update user
+func UpdateUser(response *fiber.Ctx) error {
+	db := database.DB
+	var user model.Users // set up the array instance struct model
+
+	// get the id for search
+	id := response.Params("userId") //! This is only a test from param the correct is in the body
+
+	errFind := db.First(&user, id)
+
+	if errFind != nil {
+		return response.Status(500).JSON(fiber.Map{
+			"status": "error",
+			"msg":    "Error user doesn't exists!",
+			"data":   nil,
+		})
+	}
+
+	user.User = "User cambiado"
+
+	err := db.Save(&user).Error
+
+	if err != nil {
+		return response.Status(500).JSON(fiber.Map{
+			"status": "error",
+			"msg":    err,
+			"data":   nil,
+		})
+	}
+
+	return response.Status(200).JSON(fiber.Map{
+		"status": "success",
+		"msg":    "Success update",
 		"data":   user,
 	})
 }

@@ -29,3 +29,41 @@ func GetAddress(response *fiber.Ctx) error {
 		"msg":    "Data found",
 		"data":   address})
 }
+
+// get a join
+func GetAddressJoinUser(response *fiber.Ctx) error {
+	//create the struct who gives a result
+	type Result struct {
+		City    string `json:"city"`
+		Country string `json:"country"`
+	}
+
+	db := database.DB
+	// inst the struct
+	var result Result
+	// make the join
+	rows, err := db.Table("users").
+		Joins("JOIN addresses ON addresses.id = users.id_address").
+		Select("addresses.city, addresses.country").
+		Rows()
+
+	// look inside the rows
+	for rows.Next() {
+		db.ScanRows(rows, &result)
+	}
+
+	// validate error
+	if err != nil {
+		return response.Status(404).JSON(fiber.Map{
+			"status": "error",
+			"msg":    "Not data found",
+			"data":   nil,
+		})
+	}
+
+	return response.JSON(fiber.Map{
+		"status": "success",
+		"msg":    "Data success",
+		"data":   result,
+	})
+}

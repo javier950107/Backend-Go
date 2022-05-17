@@ -10,4 +10,5 @@ func SetupAddressRoutes(router fiber.Router) {
 	app := router.Group("/address")
 	// get address data
 	app.Get("/", addressHandler.GetAddress)
+	app.Get("/join", addressHandler.GetAddressJoinUser)
 }
