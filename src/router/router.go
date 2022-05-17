@@ -1,8 +1,9 @@
 package router
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 
 	addressRoutes "api/src/routes/address"
 	userRoutes "api/src/routes/user"
@@ -10,7 +11,11 @@ import (
 
 func SetupRoutes(app *fiber.App) {
 	// create the router router/api/
-	api := app.Group("/api", logger.New())
+	// read the middleware
+	api := app.Group("/api", func(response *fiber.Ctx) error {
+		fmt.Println("Read the middleware")
+		return response.Next()
+	})
 
 	//setup the routes
 	userRoutes.SetupUserRoutes(api)
